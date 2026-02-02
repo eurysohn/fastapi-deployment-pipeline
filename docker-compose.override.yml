@@ -1,0 +1,40 @@
+# =============================================================================
+# Docker Compose Override - Local Development
+# =============================================================================
+# This file is automatically loaded with docker-compose.yml
+# Provides development-specific configuration
+#
+# Usage:
+#   docker-compose up -d  # Uses both docker-compose.yml and this file
+# =============================================================================
+
+services:
+  api:
+    build:
+      target: production  # Use production stage for consistency
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - LOG_FORMAT=console
+    volumes:
+      # Mount source code for hot reload
+      - ./app:/app/app:ro
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    # Override healthcheck for faster feedback in dev
+    healthcheck:
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  # Expose Redis CLI for debugging
+  redis:
+    ports:
+      - "6379:6379"
+
+  # Development Grafana settings
+  grafana:
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
