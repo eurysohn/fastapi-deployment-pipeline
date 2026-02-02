@@ -8,12 +8,14 @@ Demonstrates production patterns:
 - Pagination support
 """
 
+from __future__ import annotations
+
 import logging
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional, List
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, Response, status
 from pydantic import BaseModel, Field
 
 from app.api.metrics import (
@@ -33,7 +35,8 @@ CACHE_TTL = 3600  # 1 hour
 ITEMS_LIST_KEY = "items:list"
 
 # In-memory storage (would be a database in production)
-_items_db: dict[str, dict[str, Any]] = {}
+from typing import Dict
+_items_db: Dict[str, Dict[str, Any]] = {}
 
 
 # Pydantic models
@@ -41,12 +44,12 @@ class ItemCreate(BaseModel):
     """Request model for creating an item."""
 
     name: str = Field(..., min_length=1, max_length=100, description="Item name")
-    description: str | None = Field(
+    description: Optional[str] = Field(
         None, max_length=500, description="Item description"
     )
     price: float = Field(..., gt=0, description="Item price (must be positive)")
     quantity: int = Field(default=0, ge=0, description="Item quantity in stock")
-    tags: list[str] = Field(default_factory=list, description="Item tags")
+    tags: List[str] = Field(default_factory=list, description="Item tags")
 
     model_config = {
         "json_schema_extra": {
@@ -66,11 +69,11 @@ class ItemCreate(BaseModel):
 class ItemUpdate(BaseModel):
     """Request model for updating an item."""
 
-    name: str | None = Field(None, min_length=1, max_length=100)
-    description: str | None = Field(None, max_length=500)
-    price: float | None = Field(None, gt=0)
-    quantity: int | None = Field(None, ge=0)
-    tags: list[str] | None = None
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    description: Optional[str] = Field(None, max_length=500)
+    price: Optional[float] = Field(None, gt=0)
+    quantity: Optional[int] = Field(None, ge=0)
+    tags: Optional[List[str]] = None
 
 
 class ItemResponse(BaseModel):
@@ -78,10 +81,10 @@ class ItemResponse(BaseModel):
 
     id: str
     name: str
-    description: str | None
+    description: Optional[str]
     price: float
     quantity: int
-    tags: list[str]
+    tags: List[str]
     created_at: datetime
     updated_at: datetime
 
@@ -89,7 +92,7 @@ class ItemResponse(BaseModel):
 class ItemListResponse(BaseModel):
     """Response model for paginated item list."""
 
-    items: list[ItemResponse]
+    items: List[ItemResponse]
     total: int
     page: int
     page_size: int
@@ -101,7 +104,7 @@ def _get_cache_key(item_id: str) -> str:
     return f"{CACHE_PREFIX}{item_id}"
 
 
-async def _get_from_cache(item_id: str) -> dict[str, Any] | None:
+async def _get_from_cache(item_id: str) -> Optional[Dict[str, Any]]:
     """Get item from cache."""
     cache = await get_cache_service()
     cached = await cache.get(_get_cache_key(item_id))
@@ -112,7 +115,7 @@ async def _get_from_cache(item_id: str) -> dict[str, Any] | None:
     return None
 
 
-async def _set_in_cache(item_id: str, item: dict[str, Any]) -> None:
+async def _set_in_cache(item_id: str, item: Dict[str, Any]) -> None:
     """Set item in cache."""
     cache = await get_cache_service()
     await cache.set(_get_cache_key(item_id), item, ttl=CACHE_TTL)
@@ -284,7 +287,7 @@ async def update_item(item_id: str, item: ItemUpdate) -> ItemResponse:
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete an item",
 )
-async def delete_item(item_id: str) -> None:
+async def delete_item(item_id: str) -> Response:
     """
     Delete an item by ID.
 
@@ -306,3 +309,5 @@ async def delete_item(item_id: str) -> None:
     record_item_deleted()
 
     logger.info(f"Deleted item: {item_id}", extra={"item_id": item_id})
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

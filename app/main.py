@@ -7,9 +7,11 @@ Production-ready FastAPI application with:
 - CORS and security headers
 """
 
+from __future__ import annotations
+
 import logging
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Dict, Any
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

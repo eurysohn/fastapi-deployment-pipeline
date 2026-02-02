@@ -10,9 +10,11 @@ These endpoints are critical for:
 - Service mesh health monitoring
 """
 
+from __future__ import annotations
+
 import logging
 from enum import Enum
-from typing import Any
+from typing import Any, Dict
 
 from fastapi import APIRouter, Response, status
 
@@ -34,13 +36,13 @@ class HealthStatus(str, Enum):
     "/healthz",
     summary="Liveness probe",
     description="Returns 200 if the application is running. Used by Kubernetes liveness probe.",
-    response_model=dict[str, str],
+    response_model=Dict[str, str],
     responses={
         200: {"description": "Application is alive"},
         503: {"description": "Application is not responding"},
     },
 )
-async def liveness() -> dict[str, str]:
+async def liveness() -> Dict[str, str]:
     """
     Liveness probe endpoint.
 
@@ -61,7 +63,7 @@ async def liveness() -> dict[str, str]:
         503: {"description": "Application is not ready"},
     },
 )
-async def readiness(response: Response) -> dict[str, Any]:
+async def readiness(response: Response) -> Dict[str, Any]:
     """
     Readiness probe endpoint.
 
@@ -70,7 +72,7 @@ async def readiness(response: Response) -> dict[str, Any]:
 
     Kubernetes will stop routing traffic if this probe fails.
     """
-    checks: dict[str, dict[str, Any]] = {}
+    checks: Dict[str, Dict[str, Any]] = {}
     overall_healthy = True
 
     # Check Redis
@@ -127,7 +129,7 @@ async def readiness(response: Response) -> dict[str, Any]:
         200: {"description": "Health check completed"},
     },
 )
-async def health_detailed(response: Response) -> dict[str, Any]:
+async def health_detailed(response: Response) -> Dict[str, Any]:
     """
     Detailed health check with component information.
 

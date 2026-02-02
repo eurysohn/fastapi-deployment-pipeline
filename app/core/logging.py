@@ -4,9 +4,11 @@ Provides JSON-formatted logs for production (ELK/CloudWatch compatible)
 and human-readable console output for development.
 """
 
+from __future__ import annotations
+
 import logging
 import sys
-from typing import Any
+from typing import Any, Dict
 
 from pythonjsonlogger import jsonlogger
 
@@ -18,9 +20,9 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
 
     def add_fields(
         self,
-        log_record: dict[str, Any],
+        log_record: Dict[str, Any],
         record: logging.LogRecord,
-        message_dict: dict[str, Any],
+        message_dict: Dict[str, Any],
     ) -> None:
         super().add_fields(log_record, record, message_dict)
 
@@ -54,7 +56,6 @@ def setup_logging() -> None:
         # JSON format for production
         formatter = CustomJsonFormatter(
             "%(timestamp)s %(level)s %(name)s %(message)s",
-            rename_fields={"levelname": "level", "name": "logger"},
         )
     else:
         # Human-readable format for development

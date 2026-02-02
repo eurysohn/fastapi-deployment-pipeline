@@ -6,8 +6,10 @@ This module provides centralized configuration management with:
 - Default values for development
 """
 
+from __future__ import annotations
+
 from functools import lru_cache
-from typing import Literal
+from typing import Literal, List
 
 from pydantic import Field, RedisDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -51,8 +53,8 @@ class Settings(BaseSettings):
     metrics_enabled: bool = Field(default=True)
 
     # Security
-    allowed_hosts: list[str] = Field(default=["*"])
-    cors_origins: list[str] = Field(default=["*"])
+    allowed_hosts: List[str] = Field(default=["*"])
+    cors_origins: List[str] = Field(default=["*"])
 
     @property
     def is_production(self) -> bool:

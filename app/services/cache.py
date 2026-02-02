@@ -7,9 +7,11 @@ Provides a robust caching layer with:
 - Health check support
 """
 
+from __future__ import annotations
+
 import json
 import logging
-from typing import Any
+from typing import Any, Optional
 
 import redis.asyncio as redis
 from redis.asyncio.connection import ConnectionPool
@@ -24,8 +26,8 @@ class CacheService:
     """Redis cache service with connection management."""
 
     def __init__(self) -> None:
-        self._pool: ConnectionPool | None = None
-        self._client: redis.Redis | None = None
+        self._pool: Optional[ConnectionPool] = None
+        self._client: Optional[redis.Redis] = None
 
     async def connect(self) -> None:
         """Initialize Redis connection pool."""
@@ -65,7 +67,7 @@ class CacheService:
         except RedisError:
             return False
 
-    async def get(self, key: str) -> Any | None:
+    async def get(self, key: str) -> Optional[Any]:
         """Get value from cache."""
         if not self._client:
             return None
@@ -82,7 +84,7 @@ class CacheService:
         self,
         key: str,
         value: Any,
-        ttl: int | None = None,
+        ttl: Optional[int] = None,
     ) -> bool:
         """Set value in cache with optional TTL."""
         if not self._client:
@@ -120,7 +122,7 @@ class CacheService:
 
 
 # Singleton instance
-_cache_service: CacheService | None = None
+_cache_service: Optional[CacheService] = None
 
 
 async def get_cache_service() -> CacheService:
