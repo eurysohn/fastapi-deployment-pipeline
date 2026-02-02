@@ -10,7 +10,7 @@
 # -----------------------------------------------------------------------------
 # Stage 1: Builder - Install dependencies
 # -----------------------------------------------------------------------------
-FROM python:3.12-slim as builder
+FROM python:3.14-slim as builder
 
 WORKDIR /build
 
@@ -31,7 +31,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 # -----------------------------------------------------------------------------
 # Stage 2: Production - Minimal runtime image
 # -----------------------------------------------------------------------------
-FROM python:3.12-slim as production
+FROM python:3.14-slim as production
 
 # Labels for container metadata
 LABEL org.opencontainers.image.title="FastAPI Deployment Pipeline" \
